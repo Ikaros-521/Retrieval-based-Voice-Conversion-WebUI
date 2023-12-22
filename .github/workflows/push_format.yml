@@ -1,16 +1,19 @@
-name: push format
+name: Standardize Code Format
 
 on:
   push:
     branches:
       - main
+      - dev
 
-permissions:
-  contents: write
-  pull-requests: write
 jobs:
   push_format:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
     steps:
       - uses: actions/checkout@v3
         with:
@@ -22,7 +25,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install Black
-        run: pip install black
+        run: pip install "black[jupyter]"
 
       - name: Run Black
         # run: black $(git ls-files '*.py')
@@ -35,13 +38,15 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add --all
-          git commit -m "Format code"
-      
+          git commit -m "chore(format): run black on ${{github.ref_name}}"
+
       - name: Create Pull Request
         if: steps.commitback.outcome == 'success'
         continue-on-error: true
         uses: peter-evans/create-pull-request@v5
         with:
-          body: Apply Code Formatter Change
-          title: Apply Code Formatter Change
-          commit-message: Automatic code format
+          delete-branch: true
+          body: "Automatically apply code formatter change"
+          title: "chore(format): run black on ${{github.ref_name}}"
+          commit-message: "chore(format): run black on ${{github.ref_name}}"
+          branch: formatter-${{github.ref_name}}
